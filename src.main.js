@@ -74,6 +74,7 @@ class UtmSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "WeAdU UTM Ledger" });
+    containerEl.createEl("p").createEl("a", { text: "Made by WeAdU (weadu.com)", href: "https://weadu.com" });
     this.pref("Default source", "source");
     this.pref("Default medium", "medium");
     this.pref("Default campaign", "campaign");

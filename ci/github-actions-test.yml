@@ -1,3 +1,6 @@
+# Copy this file to .github/workflows/test.yml to run the tests on GitHub Actions.
+# It is kept here because the token that opened this pull request cannot write workflow files.
+
 name: tests
 
 on:

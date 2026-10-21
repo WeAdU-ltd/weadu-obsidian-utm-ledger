@@ -1,7 +1,7 @@
 {
   "id": "weadu-utm-ledger",
   "name": "WeAdU UTM Ledger",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "minAppVersion": "1.5.0",
   "description": "Build campaign URLs, flag links missing utm_source, utm_medium, or utm_campaign, and keep a Markdown ledger. Local only.",
   "author": "WeAdU",

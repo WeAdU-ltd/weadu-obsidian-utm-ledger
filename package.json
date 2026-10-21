@@ -1,0 +1,21 @@
+{
+  "name": "weadu-utm-ledger",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Obsidian plugin: UTM URLs and a Markdown ledger. Local only.",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --noEmit && node esbuild.config.mjs",
+    "lint": "eslint .",
+    "test": "sh test.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "esbuild": "^0.25.12",
+    "eslint": "^9.39.5",
+    "eslint-plugin-obsidianmd": "^0.4.2",
+    "obsidian": "^1.14.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0"
+  }
+}

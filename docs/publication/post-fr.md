@@ -10,9 +10,9 @@ Bonjour à tous,
 
 Je partage un petit plugin gratuit conçu pour ceux qui rédigent leurs briefs de campagne dans Obsidian.
 
-- **Insert UTM URL** ouvre un formulaire (URL de destination, source, support, campagne, et en option contenu et terme) et insère l'URL finale à l'emplacement du curseur.
+- **Insert campaign URL** ouvre un formulaire (URL de destination, source, support, campagne, et en option contenu et terme) et insère l'URL finale à l'emplacement du curseur.
 - **Insert URL and ledger row** ajoute aussi l'URL, avec la date, dans un tableau « UTM ledger » de la note : le brief garde la trace de chaque lien.
-- **Check UTM links in the current note** liste les liens de la note et signale un utm_source, utm_medium ou utm_campaign absent, en double ou vide.
+- **Check campaign links in the current note** liste uniquement les liens de campagne (avec des paramètres utm_) dont utm_source, utm_medium ou utm_campaign est absent, en double ou vide, sans modifier la note.
 
 Tout se passe dans Obsidian : aucune requête réseau, aucun compte, aucune collecte de données. Licence MIT. L'interface est en anglais.
 

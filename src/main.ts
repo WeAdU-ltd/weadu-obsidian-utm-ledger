@@ -176,7 +176,8 @@ export default class WeaduUtmLedger extends Plugin {
           editor.replaceSelection(built.url);
           if (withLedger) {
             const insertion = ledgerInsertion(editor.getValue(), ledgerRow(values, today()));
-            editor.replaceRange(insertion.text, insertion.pos);
+            if (insertion) editor.replaceRange(insertion.text, insertion.pos);
+            else new Notice("This URL is already in the ledger: no new row.");
           }
           return true;
         }).open();

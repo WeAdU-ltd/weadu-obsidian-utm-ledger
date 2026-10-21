@@ -38,6 +38,6 @@ test("utm inspect and ledger", function () {
   assert.match(once, /## UTM ledger/);
   const twice = utm.appendLedger(once, row);
   const occurrences = twice.split(row).length - 1;
-  assert.equal(occurrences, 2);
+  assert.equal(occurrences, 1, "the same URL is not added twice");
   assert.equal(twice.split("## UTM ledger").length - 1, 1);
 });

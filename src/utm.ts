@@ -207,8 +207,9 @@ export function ledgerRow(input: UtmInput, isoDate: string): string {
 /**
  * Where to put a new ledger row, as one small insertion: the rest of the note is not rewritten.
  * Creates the "## UTM ledger" section at the end of the note, or the table under an existing heading.
+ * Returns null when the URL of the row is already in the ledger table: it is not added twice.
  */
-export function ledgerInsertion(markdown: string, row: string): Insertion {
+export function ledgerInsertion(markdown: string, row: string): Insertion | null {
   const lines = markdown.split("\n");
   const lastLine = lines.length - 1;
   const end: Position = { line: lastLine, ch: lines[lastLine].length };
@@ -231,8 +232,16 @@ export function ledgerInsertion(markdown: string, row: string): Insertion {
   }
   let last = cursor;
   while (last + 1 < lines.length && lines[last + 1].startsWith("|")) last++;
+  const url = rowUrl(row);
+  if (url && lines.slice(cursor + 2, last + 1).some((line) => rowUrl(line) === url)) return null;
   if (last === lastLine) return { pos: end, text: "\n" + row };
   return { pos: { line: last + 1, ch: 0 }, text: row + "\n" };
+}
+
+// The URL cell (second column) of a ledger row.
+function rowUrl(row: string): string {
+  const cells = row.split(/(?<!\\)\|/);
+  return cells.length > 2 ? cells[2].trim() : "";
 }
 
 /** Applies an insertion to a string the way Editor.replaceRange does. Used by tests. */

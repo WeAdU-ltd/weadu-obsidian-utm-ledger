@@ -136,6 +136,18 @@ test("insert command writes the URL and adds only the ledger lines, without rewr
   assert.ok(editor.text.endsWith(before.slice(before.indexOf("| --- |")).replace(/\n$/, "") + "\n" + editor.text.split("\n").filter(function (l) { return l.includes("utm_campaign=fall"); }).pop() + "\n") || /utm_campaign=spring[^\n]*\n\| [^\n]*utm_campaign=fall/.test(editor.text), editor.text);
 });
 
+test("inserting the same URL twice adds one ledger row and shows a notice", async function () {
+  const plugin = await loadPlugin({ source: "google", medium: "cpc", campaign: "spring" });
+  const editor = new stub.FakeEditor("Brief\n", { line: 1, ch: 0 });
+  for (let i = 0; i < 2; i++) {
+    plugin.commands["insert-utm-url"].editorCallback(editor);
+    await fill({ "Landing URL": "https://shop.example/p" });
+    button("Insert URL and ledger row").click();
+  }
+  assert.equal(editor.text.split("| https://shop.example/p?utm_source=google").length - 1, 1, editor.text);
+  assert.match(stub.notices[stub.notices.length - 1], /already in the ledger/);
+});
+
 test("insert command with invalid input shows a notice and leaves the note alone", async function () {
   const plugin = await loadPlugin();
   const editor = new stub.FakeEditor("Brief", { line: 0, ch: 5 });

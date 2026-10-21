@@ -6,15 +6,15 @@ WeAdU UTM Ledger
 
 ## Description courte
 
-Crée des URL de campagne, signale les liens sans utm_source, utm_medium ou utm_campaign, et tient un registre en Markdown. Tout reste en local.
+Crée des URL de campagne, signale les liens de campagne dont utm_source, utm_medium ou utm_campaign est absent, en double ou vide, et tient un registre en Markdown. Tout reste en local.
 
 ## Description longue
 
 WeAdU UTM Ledger aide à créer et à vérifier des URL de campagne sans quitter ses notes.
 
-- Insérer une URL UTM : saisissez l'URL de destination, la source, le support (medium), la campagne et, si besoin, le contenu et le terme. L'URL est insérée à l'emplacement du curseur.
-- Registre : chaque URL créée peut être ajoutée, avec la date, comme ligne d'un tableau « UTM ledger » dans la note en cours.
-- Vérifier les liens UTM : liste tous les liens de la note et signale un utm_source, utm_medium ou utm_campaign absent, en double ou vide.
+- Insert campaign URL (insérer une URL de campagne) : saisissez l'URL de destination, la source, le support (medium), la campagne et, si besoin, le contenu et le terme. L'URL est insérée à l'emplacement du curseur.
+- Registre : chaque URL créée peut être ajoutée, avec la date, comme ligne d'un tableau « UTM ledger » à la fin de la note en cours. Seules les nouvelles lignes sont ajoutées, le reste de la note n'est pas réécrit, et une URL déjà présente dans le registre n'est pas ajoutée une seconde fois.
+- Check campaign links in the current note (vérifier les liens de campagne) : examine les liens qui portent des paramètres utm_ et liste, avec leur numéro de ligne, uniquement ceux dont utm_source, utm_medium ou utm_campaign est absent, en double ou vide. Le résultat s'ouvre dans une fenêtre ; la note n'est pas modifiée.
 - Valeurs par défaut : une source, un support et une campagne par défaut peuvent être enregistrés dans les réglages.
 
 Les valeurs sont mises en minuscules et peuvent contenir des lettres, des chiffres et . _ ~ -, sans espace. Les paramètres UTM existants sont remplacés ; les autres paramètres sont conservés.

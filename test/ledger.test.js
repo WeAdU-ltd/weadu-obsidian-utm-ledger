@@ -39,3 +39,12 @@ test("check ignores links without UTM and reports line numbers", function () {
   assert.equal(report.faulty[0].line, 2);
   assert.deepEqual(report.faulty[0].findings.map((f) => f.code), ["missing_utm_campaign"]);
 });
+
+test("a URL already in the ledger is not added again", function () {
+  const header = utm.ledgerHeader();
+  const note = "## UTM ledger\n\n" + header + "\n| 2026-10-20 | https://a.example/?utm_source=g | g | c | s |  |  |\n\nAfter";
+  assert.equal(utm.ledgerInsertion(note, "| 2026-10-21 | https://a.example/?utm_source=g | g | c | s |  |  |"), null);
+  assert.equal(utm.appendLedger(note, "| 2026-10-21 | https://a.example/?utm_source=g | g | c | s |  |  |"), note);
+  const other = utm.appendLedger(note, "| 2026-10-21 | https://b.example/?utm_source=g | g | c | s |  |  |");
+  assert.match(other, /a\.example[^\n]*\n\| 2026-10-21 \| https:\/\/b\.example/);
+});

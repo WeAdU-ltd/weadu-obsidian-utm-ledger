@@ -7,7 +7,7 @@ Everything runs inside Obsidian. The plugin makes no network request.
 ## Features
 
 - **Insert campaign URL**: a form for the landing URL, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, and `utm_term`. The URL is inserted at the cursor.
-- **Insert URL and ledger row**: same form, and the URL is also added as a dated row in a `## UTM ledger` table in the current note. The heading and the table are created at the end of the note if they do not exist yet. Only the new lines are added: the rest of the note is not rewritten, so undo, cursor, and folds stay as they were.
+- **Insert URL and ledger row**: same form, and the URL is also added as a dated row in a `## UTM ledger` table in the current note. The heading and the table are created at the end of the note if they do not exist yet. Only the new lines are added: the rest of the note is not rewritten, so undo, cursor, and folds stay as they were. A URL that is already in the ledger table is not added again (a notice says so).
 - **Check campaign links in the current note**: looks at the links that carry `utm_` parameters and lists, with their line number, only those with a missing, repeated, or empty `utm_source`, `utm_medium`, or `utm_campaign`, or a value with characters outside the allowed set. Links without any `utm_` parameter are not campaign links and are only counted. The result opens in a window; the note is not modified.
 - **Default values**: set a default source, medium, and campaign in the settings. They prefill the form.
 

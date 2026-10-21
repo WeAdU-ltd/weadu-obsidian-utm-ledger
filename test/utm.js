@@ -3,6 +3,7 @@
 const utm = require("./.build/utm.cjs");
 // Whole-note view of a ledger insertion, for readable assertions.
 utm.appendLedger = function (markdown, row) {
-  return utm.applyInsertion(markdown, utm.ledgerInsertion(markdown, row));
+  const insertion = utm.ledgerInsertion(markdown, row);
+  return insertion ? utm.applyInsertion(markdown, insertion) : markdown;
 };
 module.exports = utm;

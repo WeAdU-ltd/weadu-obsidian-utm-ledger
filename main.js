@@ -200,8 +200,14 @@ function ledgerInsertion(markdown, row) {
   }
   let last = cursor;
   while (last + 1 < lines.length && lines[last + 1].startsWith("|")) last++;
+  const url = rowUrl(row);
+  if (url && lines.slice(cursor + 2, last + 1).some((line) => rowUrl(line) === url)) return null;
   if (last === lastLine) return { pos: end, text: "\n" + row };
   return { pos: { line: last + 1, ch: 0 }, text: row + "\n" };
+}
+function rowUrl(row) {
+  const cells = row.split(/(?<!\\)\|/);
+  return cells.length > 2 ? cells[2].trim() : "";
 }
 
 // src/main.ts
@@ -344,7 +350,8 @@ var WeaduUtmLedger = class extends import_obsidian.Plugin {
           editor.replaceSelection(built.url);
           if (withLedger) {
             const insertion = ledgerInsertion(editor.getValue(), ledgerRow(values, today()));
-            editor.replaceRange(insertion.text, insertion.pos);
+            if (insertion) editor.replaceRange(insertion.text, insertion.pos);
+            else new import_obsidian.Notice("This URL is already in the ledger: no new row.");
           }
           return true;
         }).open();

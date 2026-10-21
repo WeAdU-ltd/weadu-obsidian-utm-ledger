@@ -11,12 +11,14 @@ function makeEl(tag, opts) {
     text: (opts && opts.text) || "",
     href: (opts && opts.href) || "",
     children: [],
-    classes: [],
+    classes: (opts && opts.cls) ? opts.cls.split(" ") : [],
     createEl(childTag, childOpts) {
       const child = makeEl(childTag, childOpts);
       el.children.push(child);
       return child;
     },
+    createDiv(childOpts) { return el.createEl("div", childOpts); },
+    setText(text) { el.text = text; },
     addClass(name) { el.classes.push(name); },
     empty() { el.children.length = 0; },
     allText() {
@@ -57,6 +59,7 @@ class Setting {
     this.buttons = [];
     this.el = containerEl.createEl("div", { text: "" });
     this.el.setting = this;
+    this.descEl = this.el.createEl("div");
   }
   setName(name) { this.name = name; this.el.text = name; return this; }
   setDesc(desc) { this.desc = desc; return this; }
@@ -74,7 +77,7 @@ function settingsIn(el) {
 }
 
 class Modal {
-  constructor(app) { this.app = app; this.contentEl = makeEl("div"); this.isOpen = false; }
+  constructor(app) { this.app = app; this.titleEl = makeEl("div"); this.contentEl = makeEl("div"); this.isOpen = false; }
   open() { this.isOpen = true; Modal.last = this; this.onOpen(); }
   close() { this.isOpen = false; this.onClose(); }
   onOpen() {}
@@ -107,12 +110,13 @@ class Notice {
 // Fake editor holding a single string, with Obsidian-like line/ch positions.
 class FakeEditor {
   constructor(text, cursor, selection) {
+    this.setValueCalls = 0;
     this.text = text || "";
     this.cursor = cursor || { line: 0, ch: 0 };
     this.selection = selection || "";
   }
   getValue() { return this.text; }
-  setValue(v) { this.text = v; }
+  setValue(v) { this.setValueCalls++; this.text = v; }
   getSelection() { return this.selection; }
   getCursor() { return this.cursor; }
   getLine(n) { return this.text.split("\n")[n] || ""; }
@@ -148,7 +152,8 @@ function loadPlugin(mainPath) {
   };
   try {
     delete require.cache[require.resolve(mainPath)];
-    return require(mainPath);
+    const loaded = require(mainPath);
+    return loaded.default || loaded;
   } finally {
     Module._load = original;
   }

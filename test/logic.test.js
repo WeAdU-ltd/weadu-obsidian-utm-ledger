@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 
-const utm = require("../lib/utm");
+const utm = require("./utm");
 
 const fixtures = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures.json"), "utf8"));
 
@@ -38,6 +38,6 @@ test("utm inspect and ledger", function () {
   assert.match(once, /## UTM ledger/);
   const twice = utm.appendLedger(once, row);
   const occurrences = twice.split(row).length - 1;
-  assert.equal(occurrences, 2);
+  assert.equal(occurrences, 1, "the same URL is not added twice");
   assert.equal(twice.split("## UTM ledger").length - 1, 1);
 });

@@ -10,9 +10,9 @@ Hi all,
 
 I'd like to share a small free plugin we made for people who write campaign briefs in Obsidian.
 
-- **Insert UTM URL** opens a form (landing URL, source, medium, campaign, and optional content and term) and inserts the finished URL at the cursor.
+- **Insert campaign URL** opens a form (landing URL, source, medium, campaign, and optional content and term) and inserts the finished URL at the cursor.
 - **Insert URL and ledger row** also adds the URL as a dated row in a "UTM ledger" table in the note, so the brief keeps a record of every link.
-- **Check UTM links in the current note** lists the links in the note and flags a missing, repeated, or empty utm_source, utm_medium, or utm_campaign.
+- **Check campaign links in the current note** lists only the campaign links (with utm_ parameters) that have a missing, repeated, or empty utm_source, utm_medium, or utm_campaign, without editing the note.
 
 It works entirely inside Obsidian: no network request, no account, no telemetry. MIT licensed.
 

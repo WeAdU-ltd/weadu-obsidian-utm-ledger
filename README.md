@@ -6,9 +6,9 @@ Everything runs inside Obsidian. The plugin makes no network request.
 
 ## Features
 
-- **Insert UTM URL**: a form for the landing URL, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, and `utm_term`. The URL is inserted at the cursor.
-- **Insert URL and ledger row**: same form, and the URL is also added as a dated row in a `## UTM ledger` table in the current note. The heading and the table are created if they do not exist yet.
-- **Check UTM links in the current note**: lists every `http` or `https` link in the note and flags a missing, repeated, or empty `utm_source`, `utm_medium`, or `utm_campaign`, and values with characters outside the allowed set. The result is inserted as a `## UTM check` section below the cursor line.
+- **Insert campaign URL**: a form for the landing URL, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, and `utm_term`. The URL is inserted at the cursor.
+- **Insert URL and ledger row**: same form, and the URL is also added as a dated row in a `## UTM ledger` table in the current note. The heading and the table are created at the end of the note if they do not exist yet. Only the new lines are added: the rest of the note is not rewritten, so undo, cursor, and folds stay as they were. A URL that is already in the ledger table is not added again (a notice says so).
+- **Check campaign links in the current note**: looks at the links that carry `utm_` parameters and lists, with their line number, only those with a missing, repeated, or empty `utm_source`, `utm_medium`, or `utm_campaign`, or a value with characters outside the allowed set. Links without any `utm_` parameter are not campaign links and are only counted. The result opens in a window; the note is not modified.
 - **Default values**: set a default source, medium, and campaign in the settings. They prefill the form.
 
 ### Rules applied when a URL is built
@@ -35,12 +35,12 @@ Requires Obsidian 1.5.0 or later.
 ## Usage
 
 1. Open a note and place the cursor where the URL should go.
-2. Open the command palette and run **WeAdU UTM Ledger: Insert UTM URL**.
+2. Open the command palette and run **WeAdU UTM Ledger: Insert campaign URL**.
 3. Fill in the form, then choose **Insert URL** or **Insert URL and ledger row**.
 
 If a value is not valid, a notice explains what to fix and the note is left unchanged.
 
-To review the links of a note, run **WeAdU UTM Ledger: Check UTM links in the current note**.
+To review the links of a note, run **WeAdU UTM Ledger: Check campaign links in the current note**.
 
 ## Settings
 
@@ -59,11 +59,12 @@ The plugin makes no network request and has no telemetry. It reads and edits onl
 ## Development
 
 ```sh
-node build.js   # rebuild main.js from src.main.js and lib/
-sh test.sh      # run the tests (Node.js 20 or later)
+npm ci
+npm run build   # type-check src/ and bundle main.js with esbuild
+sh test.sh      # type-check, eslint-plugin-obsidianmd, build, tests (Node.js 20 or later)
 ```
 
-`main.js` is generated: edit `src.main.js` or `lib/utm.js`, then run `node build.js`. The tests fail if `main.js` is out of date.
+`main.js` is generated from `src/main.ts` and `src/utm.ts`. The tests fail if `main.js` is out of date or if the Obsidian lint reports any error or warning.
 
 ## License
 

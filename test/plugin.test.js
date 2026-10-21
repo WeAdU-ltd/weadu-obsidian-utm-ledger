@@ -181,7 +181,7 @@ test("ledger rows are appended inside an existing table", function () {
   assert.match(table, /\| old \|\n\| new \|\n\nAfter/);
 });
 
-test("ledger leaves a blank line between a new table and the text after it", { todo: "appendLedger puts the table right above 'Notes below.', so Markdown reads that line as a table row" }, function () {
+test("ledger leaves a blank line between a new table and the text after it", function () {
   const added = utm.appendLedger("## UTM ledger\n\nNotes below.", "| 2026-10-20 | x | a | b | c |  |  |");
   assert.match(added, /\|\n\nNotes below\./);
 });

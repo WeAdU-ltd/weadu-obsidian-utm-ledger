@@ -27,8 +27,10 @@ module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
 
 // src/utm.ts
+var GOOGLE_ADS_TRACKING_NOTICE = "Google Ads clicks are tracked with auto-tagging (gclid) and a tracking template, not by pasting UTM parameters on the final URL.";
 var UTM_ORDER = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
 var REQUIRED = ["utm_source", "utm_medium", "utm_campaign"];
+var OPTIONAL = ["utm_content", "utm_term"];
 var VALUE_RE = /^[A-Za-z0-9._~-]+$/;
 var MAX_VALUE = 80;
 var FIELDS = ["source", "medium", "campaign", "content", "term"];
@@ -55,7 +57,7 @@ function finding(code, field) {
   var _a;
   return { code, field, message: (_a = MESSAGES[code]) != null ? _a : code };
 }
-function normalizeValue(raw, field, required, errors) {
+function normalizeValue(raw, field, required, errors, lowercased) {
   const value = (typeof raw === "string" ? raw : "").trim();
   if (!value) {
     if (required) errors.push(finding("utm_" + field + "_required", field));
@@ -65,7 +67,9 @@ function normalizeValue(raw, field, required, errors) {
     errors.push(finding("utm_value_invalid", field));
     return "";
   }
-  return value.toLowerCase();
+  const stored = value.toLowerCase();
+  if (stored !== value) lowercased.push({ field, from: value, to: stored });
+  return stored;
 }
 function parseHttpUrl(raw) {
   try {
@@ -78,11 +82,12 @@ function parseHttpUrl(raw) {
 function buildUtmUrl(input) {
   var _a;
   const errors = [];
+  const lowercased = [];
   const rawUrl = ((_a = input.url) != null ? _a : "").trim();
   if (!rawUrl) errors.push(finding("url_required", "url"));
   const values = {};
   FIELDS.forEach((field, i) => {
-    values[field] = normalizeValue(input[field], field, i < 3, errors);
+    values[field] = normalizeValue(input[field], field, i < 3, errors, lowercased);
   });
   let parsed = null;
   if (rawUrl) {
@@ -96,12 +101,12 @@ function buildUtmUrl(input) {
       errors.push(finding("url_invalid", "url"));
     }
   }
-  if (errors.length || !parsed) return { ok: false, url: "", errors };
+  if (errors.length || !parsed) return { ok: false, url: "", errors, lowercased };
   for (const name of UTM_ORDER) parsed.searchParams.delete(name);
   for (const field of FIELDS) {
     if (values[field]) parsed.searchParams.append("utm_" + field, values[field]);
   }
-  return { ok: true, url: parsed.toString(), errors: [] };
+  return { ok: true, url: parsed.toString(), errors: [], lowercased };
 }
 function queryKeys(parsed) {
   const raw = parsed.search.startsWith("?") ? parsed.search.slice(1) : parsed.search;
@@ -136,9 +141,24 @@ function inspectUrl(raw) {
     else if (count > 1) findings.push(finding("duplicate_" + name, name));
     const value = parsed.searchParams.get(name);
     if (value !== null && value.trim() === "") findings.push(finding("empty_" + name, name));
-    else if (value && !VALUE_RE.test(value)) findings.push(finding("utm_value_invalid", name));
+    else noteValue(name, value, findings);
   }
+  for (const name of OPTIONAL) noteValue(name, parsed.searchParams.get(name), findings);
   return findings;
+}
+function noteValue(name, value, findings) {
+  if (value === null || value.trim() === "") return;
+  if (value.length > MAX_VALUE || !VALUE_RE.test(value)) {
+    findings.push(finding("utm_value_invalid", name));
+    return;
+  }
+  if (value !== value.toLowerCase()) {
+    findings.push({
+      code: "utm_not_lowercase",
+      field: name,
+      message: name + " is not lower case (" + value + "). Stored form: " + value.toLowerCase() + "."
+    });
+  }
 }
 function extractUrls(text) {
   const re = /https?:\/\/[^\s<>\])"'`]+/gi;
@@ -230,6 +250,7 @@ var UtmModal = class extends import_obsidian.Modal {
   onOpen() {
     this.contentEl.addClass("weadu-utm-modal");
     this.titleEl.setText("Campaign URL");
+    this.contentEl.createEl("p", { cls: "setting-item-description", text: GOOGLE_ADS_TRACKING_NOTICE });
     this.field("Landing URL", "url", "https://");
     this.field("Source", "source", "google");
     this.field("Medium", "medium", "cpc");
@@ -268,6 +289,7 @@ var CheckModal = class extends import_obsidian.Modal {
   onOpen() {
     const { faulty, complete, withoutUtm } = this.report;
     this.titleEl.setText("Campaign link check");
+    this.contentEl.createEl("p", { cls: "setting-item-description", text: GOOGLE_ADS_TRACKING_NOTICE });
     this.contentEl.createEl("p", {
       text: `${plural(faulty.length, "link")} to fix, ${complete} complete, ${withoutUtm} without UTM parameters (not checked).`
     });
@@ -348,6 +370,10 @@ var WeaduUtmLedger = class extends import_obsidian.Plugin {
             return false;
           }
           editor.replaceSelection(built.url);
+          if (built.lowercased.length) {
+            const detail = built.lowercased.map((row) => row.field + ": " + row.from + " -> " + row.to).join(", ");
+            new import_obsidian.Notice("Stored in lower case. " + detail + ".");
+          }
           if (withLedger) {
             const insertion = ledgerInsertion(editor.getValue(), ledgerRow(values, today()));
             if (insertion) editor.replaceRange(insertion.text, insertion.pos);
@@ -363,7 +389,7 @@ var WeaduUtmLedger = class extends import_obsidian.Plugin {
       editorCallback: (editor) => {
         const report = checkNote(editor.getValue());
         if (!report.faulty.length) {
-          new import_obsidian.Notice(`No UTM link to fix: ${report.complete} complete, ${report.withoutUtm} without UTM parameters.`);
+          new import_obsidian.Notice(`No UTM link to fix: ${report.complete} complete, ${report.withoutUtm} without UTM parameters. ${GOOGLE_ADS_TRACKING_NOTICE}`);
           return;
         }
         new CheckModal(this.app, report).open();

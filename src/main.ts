@@ -1,5 +1,5 @@
 import { App, Editor, Modal, Notice, Plugin, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
-import { buildUtmUrl, checkNote, CheckReport, ledgerInsertion, ledgerRow, UtmInput } from "./utm";
+import { buildUtmUrl, checkNote, CheckReport, GOOGLE_ADS_TRACKING_NOTICE, ledgerInsertion, ledgerRow, UtmInput } from "./utm";
 
 interface UtmSettings {
   source: string;
@@ -35,6 +35,7 @@ class UtmModal extends Modal {
   onOpen(): void {
     this.contentEl.addClass("weadu-utm-modal");
     this.titleEl.setText("Campaign URL");
+    this.contentEl.createEl("p", { cls: "setting-item-description", text: GOOGLE_ADS_TRACKING_NOTICE });
     this.field("Landing URL", "url", "https://");
     this.field("Source", "source", "google");
     this.field("Medium", "medium", "cpc");
@@ -84,6 +85,7 @@ class CheckModal extends Modal {
   onOpen(): void {
     const { faulty, complete, withoutUtm } = this.report;
     this.titleEl.setText("Campaign link check");
+    this.contentEl.createEl("p", { cls: "setting-item-description", text: GOOGLE_ADS_TRACKING_NOTICE });
     this.contentEl.createEl("p", {
       text: `${plural(faulty.length, "link")} to fix, ${complete} complete, ${withoutUtm} without UTM parameters (not checked).`,
     });
@@ -174,6 +176,10 @@ export default class WeaduUtmLedger extends Plugin {
             return false;
           }
           editor.replaceSelection(built.url);
+          if (built.lowercased.length) {
+            const detail = built.lowercased.map((row) => row.field + ": " + row.from + " -> " + row.to).join(", ");
+            new Notice("Stored in lower case. " + detail + ".");
+          }
           if (withLedger) {
             const insertion = ledgerInsertion(editor.getValue(), ledgerRow(values, today()));
             if (insertion) editor.replaceRange(insertion.text, insertion.pos);
@@ -190,7 +196,7 @@ export default class WeaduUtmLedger extends Plugin {
       editorCallback: (editor: Editor) => {
         const report = checkNote(editor.getValue());
         if (!report.faulty.length) {
-          new Notice(`No UTM link to fix: ${report.complete} complete, ${report.withoutUtm} without UTM parameters.`);
+          new Notice(`No UTM link to fix: ${report.complete} complete, ${report.withoutUtm} without UTM parameters. ${GOOGLE_ADS_TRACKING_NOTICE}`);
           return;
         }
         new CheckModal(this.app, report).open();

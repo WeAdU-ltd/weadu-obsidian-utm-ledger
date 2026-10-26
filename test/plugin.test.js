@@ -114,6 +114,8 @@ test("insert command writes the URL and adds only the ledger lines, without rewr
   const modal = stub.Modal.last;
   assert.ok(modal.isOpen);
   assert.equal(modal.titleEl.text, "Campaign URL");
+  assert.match(modal.contentEl.allText(), /gclid/);
+  assert.match(modal.contentEl.allText(), /tracking template/);
   assert.equal(modal.values.source, "google", "default source is prefilled");
   await fill({ "Landing URL": "https://shop.example/p?color=blue", Campaign: "Spring" });
   button("Insert URL and ledger row").click();
@@ -176,6 +178,7 @@ test("check command reports only faulty campaign links, in a modal, without edit
   const modal = stub.Modal.last;
   assert.ok(modal.isOpen);
   assert.equal(modal.titleEl.text, "Campaign link check");
+  assert.match(modal.contentEl.allText(), /gclid/);
   const text = modal.contentEl.allText();
   assert.match(text, /1 link to fix, 1 complete, 1 without UTM parameters/);
   assert.match(text, /Line 3: utm_source is repeated\. utm_medium is missing\. utm_campaign is empty\./);
@@ -196,6 +199,14 @@ test("inspectUrl edge cases", function () {
   assert.deepEqual(codes(utm.inspectUrl("https://a.example/?utm_source=goo%20gle&utm_medium=cpc&utm_campaign=x")), ["utm_value_invalid"]);
   assert.deepEqual(codes(utm.inspectUrl("https://a.example/")), [], "a link without any utm_ parameter is not a campaign link");
   assert.deepEqual(codes(utm.inspectUrl("https://a.example/?utm_source=x")), ["missing_utm_campaign", "missing_utm_medium"]);
+  const long = "a".repeat(81);
+  assert.deepEqual(codes(utm.inspectUrl("https://a.example/?utm_source=" + long + "&utm_medium=cpc&utm_campaign=x")), ["utm_value_invalid"]);
+  assert.deepEqual(codes(utm.inspectUrl("https://a.example/?utm_source=" + "a".repeat(80) + "&utm_medium=cpc&utm_campaign=x")), []);
+  assert.deepEqual(codes(utm.inspectUrl("https://a.example/?utm_source=g&utm_medium=cpc&utm_campaign=x&utm_content=" + "b".repeat(81))), ["utm_value_invalid"]);
+  const mixed = utm.inspectUrl("https://a.example/?utm_source=Google&utm_medium=cpc&utm_campaign=x");
+  assert.deepEqual(codes(mixed), ["utm_not_lowercase"]);
+  assert.match(mixed[0].message, /Google/);
+  assert.match(mixed[0].message, /google/);
 });
 
 test("buildUtmUrl rejects long values and missing URL", function () {
@@ -203,6 +214,15 @@ test("buildUtmUrl rejects long values and missing URL", function () {
   assert.deepEqual(codes(long.errors), ["utm_value_invalid"]);
   const ok = utm.buildUtmUrl({ url: "https://a.example", source: "a".repeat(80), medium: "cpc", campaign: "x" });
   assert.equal(ok.ok, true);
+  assert.deepEqual(ok.lowercased, []);
+  const mixed = utm.buildUtmUrl({ url: "https://a.example", source: "Google", medium: "cpc", campaign: "Spring" });
+  assert.equal(mixed.ok, true);
+  assert.match(mixed.url, /utm_source=google/);
+  assert.match(mixed.url, /utm_campaign=spring/);
+  assert.deepEqual(mixed.lowercased, [
+    { field: "source", from: "Google", to: "google" },
+    { field: "campaign", from: "Spring", to: "spring" },
+  ]);
   assert.deepEqual(codes(utm.buildUtmUrl({}).errors), ["url_required", "utm_campaign_required", "utm_medium_required", "utm_source_required"]);
 });
 

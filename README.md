@@ -8,14 +8,16 @@ Everything runs inside Obsidian. The plugin makes no network request.
 
 - **Insert campaign URL**: a form for the landing URL, `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, and `utm_term`. The URL is inserted at the cursor.
 - **Insert URL and ledger row**: same form, and the URL is also added as a dated row in a `## UTM ledger` table in the current note. The heading and the table are created at the end of the note if they do not exist yet. Only the new lines are added: the rest of the note is not rewritten, so undo, cursor, and folds stay as they were. A URL that is already in the ledger table is not added again (a notice says so).
-- **Check campaign links in the current note**: looks at the links that carry `utm_` parameters and lists, with their line number, only those with a missing, repeated, or empty `utm_source`, `utm_medium`, or `utm_campaign`, or a value with characters outside the allowed set. Links without any `utm_` parameter are not campaign links and are only counted. The result opens in a window; the note is not modified.
+- **Check campaign links in the current note**: looks at the links that carry `utm_` parameters and lists, with their line number, only those with a missing, repeated, or empty `utm_source`, `utm_medium`, or `utm_campaign`, a value longer than 80 characters, a value with characters outside the allowed set, or a value that is not already lower case. Links without any `utm_` parameter are not campaign links and are only counted. The result opens in a window; the note is not modified.
+- **Google Ads**: the form and the check both say that Google Ads clicks are tracked with auto-tagging (`gclid`) and a tracking template, not by pasting UTM parameters on the final URL. The tool still builds UTM links for other channels.
 - **Default values**: set a default source, medium, and campaign in the settings. They prefill the form.
 
 ### Rules applied when a URL is built
 
 - The landing URL must start with `http://` or `https://`.
 - `utm_source`, `utm_medium`, and `utm_campaign` are required. `utm_content` and `utm_term` are optional.
-- Values may contain letters, digits, `.`, `_`, `~`, and `-`, with no spaces, up to 80 characters. They are converted to lowercase.
+- Values may contain letters, digits, `.`, `_`, `~`, and `-`, with no spaces, up to 80 characters. The same 80-character limit is applied when a note is checked, including `utm_content` and `utm_term`.
+- Values are stored in lower case. If you typed capitals, a notice shows the change (`Spring` becomes `spring`). GA4 treats the two as different values.
 - Existing `utm_*` parameters in the landing URL are replaced. Other parameters and the `#fragment` are kept.
 
 ## Installation

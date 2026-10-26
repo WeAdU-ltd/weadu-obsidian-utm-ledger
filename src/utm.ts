@@ -15,11 +15,22 @@ export interface Finding {
   message: string;
 }
 
+export interface LowercasedField {
+  field: string;
+  from: string;
+  to: string;
+}
+
 export interface BuildResult {
   ok: boolean;
   url: string;
   errors: Finding[];
+  lowercased: LowercasedField[];
 }
+
+/** Shown wherever a URL is built or checked. Google Ads does not use UTM parameters on the final URL. */
+export const GOOGLE_ADS_TRACKING_NOTICE =
+  "Google Ads clicks are tracked with auto-tagging (gclid) and a tracking template, not by pasting UTM parameters on the final URL.";
 
 export interface Position {
   line: number;
@@ -45,6 +56,7 @@ export interface CheckReport {
 
 const UTM_ORDER = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
 const REQUIRED = ["utm_source", "utm_medium", "utm_campaign"];
+const OPTIONAL = ["utm_content", "utm_term"];
 const VALUE_RE = /^[A-Za-z0-9._~-]+$/;
 const MAX_VALUE = 80;
 const FIELDS: (keyof UtmInput)[] = ["source", "medium", "campaign", "content", "term"];
@@ -73,7 +85,7 @@ function finding(code: string, field: string): Finding {
   return { code, field, message: MESSAGES[code] ?? code };
 }
 
-function normalizeValue(raw: unknown, field: string, required: boolean, errors: Finding[]): string {
+function normalizeValue(raw: unknown, field: string, required: boolean, errors: Finding[], lowercased: LowercasedField[]): string {
   const value = (typeof raw === "string" ? raw : "").trim();
   if (!value) {
     if (required) errors.push(finding("utm_" + field + "_required", field));
@@ -83,7 +95,9 @@ function normalizeValue(raw: unknown, field: string, required: boolean, errors: 
     errors.push(finding("utm_value_invalid", field));
     return "";
   }
-  return value.toLowerCase();
+  const stored = value.toLowerCase();
+  if (stored !== value) lowercased.push({ field, from: value, to: stored });
+  return stored;
 }
 
 function parseHttpUrl(raw: string): URL | null {
@@ -97,11 +111,12 @@ function parseHttpUrl(raw: string): URL | null {
 
 export function buildUtmUrl(input: UtmInput): BuildResult {
   const errors: Finding[] = [];
+  const lowercased: LowercasedField[] = [];
   const rawUrl = (input.url ?? "").trim();
   if (!rawUrl) errors.push(finding("url_required", "url"));
   const values: Record<string, string> = {};
   FIELDS.forEach((field, i) => {
-    values[field] = normalizeValue(input[field], field, i < 3, errors);
+    values[field] = normalizeValue(input[field], field, i < 3, errors, lowercased);
   });
   let parsed: URL | null = null;
   if (rawUrl) {
@@ -115,12 +130,12 @@ export function buildUtmUrl(input: UtmInput): BuildResult {
       errors.push(finding("url_invalid", "url"));
     }
   }
-  if (errors.length || !parsed) return { ok: false, url: "", errors };
+  if (errors.length || !parsed) return { ok: false, url: "", errors, lowercased };
   for (const name of UTM_ORDER) parsed.searchParams.delete(name);
   for (const field of FIELDS) {
     if (values[field]) parsed.searchParams.append("utm_" + field, values[field]);
   }
-  return { ok: true, url: parsed.toString(), errors: [] };
+  return { ok: true, url: parsed.toString(), errors: [], lowercased };
 }
 
 function queryKeys(parsed: URL): string[] {
@@ -158,9 +173,25 @@ export function inspectUrl(raw: string): Finding[] {
     else if (count > 1) findings.push(finding("duplicate_" + name, name));
     const value = parsed.searchParams.get(name);
     if (value !== null && value.trim() === "") findings.push(finding("empty_" + name, name));
-    else if (value && !VALUE_RE.test(value)) findings.push(finding("utm_value_invalid", name));
+    else noteValue(name, value, findings);
   }
+  for (const name of OPTIONAL) noteValue(name, parsed.searchParams.get(name), findings);
   return findings;
+}
+
+function noteValue(name: string, value: string | null, findings: Finding[]): void {
+  if (value === null || value.trim() === "") return;
+  if (value.length > MAX_VALUE || !VALUE_RE.test(value)) {
+    findings.push(finding("utm_value_invalid", name));
+    return;
+  }
+  if (value !== value.toLowerCase()) {
+    findings.push({
+      code: "utm_not_lowercase",
+      field: name,
+      message: name + " is not lower case (" + value + "). Stored form: " + value.toLowerCase() + ".",
+    });
+  }
 }
 
 export function extractUrls(text: string): string[] {

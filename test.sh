@@ -8,6 +8,6 @@ npx eslint --max-warnings 0 .
 node esbuild.config.mjs
 git diff --exit-code -- main.js
 node esbuild.config.mjs test
-node --test test/
+node --test test/*.js
 node -e "JSON.parse(require(\"fs\").readFileSync(\"manifest.json\"))"
 echo "weadu-obsidian-utm-ledger ok"
